@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link href="css/Main.css" rel="stylesheet" />
+		<script src="wabajana//wanakana.min.js"></script>
+
+	<title>Robo-one timer</title>
+    <style> 
+        #redCorner { background-color: rgba(255, 0, 0, 0.2); }
+        #blueCorner { background-color: rgba(0, 0, 255, 0.2); }
+        body { 
+            background-color: #FFFFF0; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            text-align: center; 
+        } 
+        .container { 
+            display: flex; 
+            justify-content: space-between; /* 左右に配置 */
+            align-items: center; 
+            width: 100%; 
+            gap: 30px; /* タイマー同士の距離を調整 */
+        } 
+        .corner { 
+            width: 60%; /* コーナーの幅 */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        } 
+        .main-timer-container { 
+            width: 40%; 
+            display: flex;
+            justify-content: center; /* メインタイマーを中央に配置 */
+            flex-direction: column;
+            align-items: center;
+        } 
+        .timer { 
+            font-size: 2em; 
+            margin: 20px 0; /* 上下の余白 */
+        }
+        button {
+            margin: 5px; /* ボタン間の間隔 */
+            padding: 10px;
+            font-size: 1em;
+        }
+        .button-container {
+            display: flex;
+            justify-content: center; /* 横並びに配置 */
+            gap: 10px; /* ボタン間の隙間 */
+        }
+    </style>    
+    </head>
+<body bgcolor="#FFFFF0">
+
+
+    <div class="radiobotan">
+		<input type="radio" checked id="11" name="altimet" onclick="altimetari()"><label for="11">アルティメット有</label>
+		<input type="radio" id="12" name="altimet" onclick="altimetnasi()"><label for="12">アルティメット無し</label></>
+	</div>
+
+    <div class="container">
+        <div class="corner" id="redCorner">
+            <h2>赤コーナー</h2>
+            <img id="redImage" src="" alt="選手画像" width="100"><br>
+            <span id="redName">未設定</span><br>
+            <div class="timer" id="Timer_red">02:00.00</div>
+            <button onclick="start_change_red()" id="redStart"><p id="start_red" ></p></button>
+            <button onclick="resetTimer_red()">リセット</button>
+        </div>
+        
+        <div class="main-timer-container"> 
+            <h1>残り時間</h1> 
+            <font size = 10><div class="timer main-timer" id="Timer"></div></font> 
+            <div class="button-container"> 
+                <button onclick="time_1mplus()">+1m</button> 
+                <button onclick="time_1splus()">+1s</button> 
+                <button onclick="time_1sminus()">-1s</button> 
+                <button onclick="time_1mminus()">-1m</button> 
+            </div>
+        </div>
+        
+        
+        <div class="corner" id="blueCorner">
+            <h2>青コーナー</h2>
+            <img id="blueImage" src="" alt="選手画像" width="100"><br>
+            <span id="blueName">未設定</span><br>
+            <div class="timer" id="Timer_blue">02:00.00</div>
+            <button onclick="start_change_blue()" id="blueStart"><p id="start_blue"></p></button>
+            <button onclick="resetTimer_blue()">リセット</button>
+        </div>
+    </div>
+
+    
+	<div>
+		<button href="#" class="changecolorbutton" onclick="change3min()">3min</button>
+		<button href="#" class="changecolorbutton" onclick="change2min()">2min</button>
+	</div>
+	<br>
+	
+		<button class="horizontal" id="1" type="button" onclick="start_change()">
+				<font size="5">
+				<p id="start" ></p>
+				</font>
+		</button>
+
+	</font>
+	<br>
+	
+	
+	<br>
+	<audio  autoplay id="audio_1" controls>
+		<source src = "music/timer_music.mp3" type = "audio/mp3">
+	</audio>
+	<br>
+	<audio  autoplay id="audio_2" controls>
+		<source src = "music/alutimet.mp3" type = "audio/mp3">
+	</audio>
+
+	<button onclick="startVoiceRecognition()">音声認識開始</button>
+    <div id="recognitionText"></div>
+	<button onclick="reset_corner()">リセット</button>
+
+	<button onclick="toggleFighterForm()">選手登録</button>
+    <div id="fighterForm">
+        <h2>ファイター情報追加</h2>
+        <label for="fighterName">選手名:</label>
+        <input type="text" id="fighterName"><br>
+        <label for="fighterImage">選手画像:</label>
+        <input type="file" id="fighterImage" accept="image/*"><br>
+        <button onclick="addFighter()">追加</button>
+    </div>
+
+    <h3>ファイターリスト</h3>
+    <ul id="fighterList"></ul> <!-- ファイターリストがここに表示される -->
+<script>
+	var now100ms=18000;
+    var count=0;
+	var nowMin;
+	var nowSec;
+	var showtime_sec;
+	var showtime_ms;
+	var start=0;
+	var altimet="audio_2";
+	var startmsgs="start";
+	var rightPressed= false;
+	var leftPressed= false;
+	var EnterPressed= false;
+	
+    var now100ms_red=12000;
+    var count_red=0;
+	var nowMin_red;
+	var nowSec_red;
+	var showtime_sec_red;
+	var showtime_ms_red;
+    var start_red=0;
+    var startmsgs_red="start";
+
+    var now100ms_blue=12000;
+    var count_blue=0;
+	var nowMin_blue;
+	var nowSec_blue;
+	var showtime_sec_blue;
+	var showtime_ms_blue;
+    var start_blue=0;
+    var startmsgs_blue="start";
+
+	document.getElementById("start").innerHTML = startmsgs;
+    document.getElementById("start_red").innerHTML = startmsgs_red;
+    document.getElementById("start_blue").innerHTML = startmsgs_blue;
+    
+	var space=0;
+
+	
+	
+	function showTimer() {
+		
+		if(start==1){
+			count--;
+			now100ms--;
+		}else{
+			document.getElementById("audio_1").pause();
+			document.getElementById("audio_2").pause();
+		}
+		if(now100ms>=0){
+			if(nowSec<10){
+				showtime_sec="0"+nowSec;
+			}else{
+				showtime_sec=nowSec;
+			}
+			if(count<10){
+				showtime_ms="0"+count;
+			}else{
+				showtime_ms=count;
+			}
+			if(count<=0 && start==1){
+				count=100;
+			}
+			nowSec=Math.floor(now100ms/100)-nowMin*60;
+			nowMin=Math.floor(now100ms/6000);
+		}else{
+			showtime_ms="00";
+		}
+		changeBoxColor();
+		msg = + nowMin + ":" + showtime_sec + ":" + showtime_ms;
+		document.getElementById("Timer").innerHTML = msg;	
+		  
+	}
+	setInterval('showTimer()',10);
+
+	function start_change(){
+		if(start==0){
+			start=1;
+			startmsgs="stop";
+			document.getElementById(altimet).currentTime = 182-(2+now100ms/100);
+			document.getElementById(altimet).play();
+		}else{
+			start=0;
+			startmsgs="start";
+			document.getElementById(altimet).pause();
+		}
+		document.getElementById("start").innerHTML = startmsgs;
+	}
+
+    function showTimer_red() {
+		
+		if(start_red==1){
+			count_red--;
+			now100ms_red--;
+		}
+		if(now100ms_red>=0){
+			if(nowSec_red<10){
+				showtime_sec_red="0"+nowSec_red;
+			}else{
+				showtime_sec_red=nowSec_red;
+			}
+			if(count_red<10){
+				showtime_ms_red="0"+count_red;
+			}else{
+				showtime_ms_red=count_red;
+			}
+			if(count_red<=0 && start_red==1){
+				count_red=100;
+			}
+			nowSec_red=Math.floor(now100ms_red/100)-nowMin_red*60;
+			nowMin_red=Math.floor(now100ms_red/6000);
+		}else{
+			showtime_ms_red="00";
+		}
+		changeBoxColor();
+		msg_red = + nowMin_red + ":" + showtime_sec_red + ":" + showtime_ms_red;
+		document.getElementById("Timer_red").innerHTML = msg_red;	
+		  
+	}
+	setInterval('showTimer_red()',10);
+	
+    function start_change_red(){
+		if(start_red==0){
+			start_red=1;
+			startmsgs_red="stop";
+		}else{
+			start_red=0;
+			startmsgs_red="start";
+			document.getElementById(altimet).pause();
+		}
+		document.getElementById("start_red").innerHTML = startmsgs_red;
+	}
+
+    function resetTimer_red(){
+        start_red=0;
+        count_red=0;
+        now100ms_red=12000;
+    }
+
+    function showTimer_blue() {
+		
+		if(start_blue==1){
+			count_blue--;
+			now100ms_blue--;
+		}
+		if(now100ms_blue>=0){
+			if(nowSec_blue<10){
+				showtime_sec_blue="0"+nowSec_blue;
+			}else{
+				showtime_sec_blue=nowSec_blue;
+			}
+			if(count_blue<10){
+				showtime_ms_blue="0"+count_blue;
+			}else{
+				showtime_ms_blue=count_blue;
+			}
+			if(count_blue<=0 && start_blue==1){
+				count_blue=100;
+			}
+			nowSec_blue=Math.floor(now100ms_blue/100)-nowMin_blue*60;
+			nowMin_blue=Math.floor(now100ms_blue/6000);
+		}else{
+			showtime_ms_blue="00";
+		}
+		changeBoxColor();
+		msg_blue = + nowMin_blue + ":" + showtime_sec_blue + ":" + showtime_ms_blue;
+		document.getElementById("Timer_blue").innerHTML = msg_blue;	
+		  
+	}
+	setInterval('showTimer_blue()',10);
+	
+    function start_change_blue(){
+		if(start_blue==0){
+			start_blue=1;
+			startmsgs_blue="stop";
+		}else{
+			start_blue=0;
+			startmsgs_blue="start";
+		}
+		document.getElementById("start_blue").innerHTML = startmsgs_blue;
+	}
+
+    function resetTimer_blue(){
+        start_blue=0;
+        count_blue=0;
+        now100ms_blue=12000;
+    }
+
+	function change2min(){
+		if(start==0){
+			now100ms=12000;		
+			count=0;
+			document.getElementById("audio_1").pause();
+			document.getElementById("audio_2").pause();
+			document.getElementById("audio_1").currentTime = 60;
+			document.getElementById("audio_2").currentTime = 60;
+		}
+	}
+	function change3min(){
+		if(start==0){
+			now100ms=18000;
+			count=0;
+			document.getElementById("audio_1").pause();
+			document.getElementById("audio_2").pause();
+			document.getElementById("audio_1").currentTime = 0;
+			document.getElementById("audio_2").currentTime = 0;
+		}
+	}
+	function altimetari(){
+		altimet="audio_2";
+	}
+	function altimetnasi(){
+		altimet="audio_1";
+	}
+	function changeBoxColor() {
+		if(now100ms>3000){
+			document.getElementById("Timer").style.backgroundColor = "#FFFFF0";
+			document.getElementById("Timer").style.Color = "black";
+		}else{
+			document.getElementById("Timer").style.backgroundColor = "#ff0000";
+			document.getElementById("Timer").style.Color = "black";
+		}
+	}
+	function time_1mplus(){
+		if(start==0){
+			now100ms+=6000;
+		}
+		if(now100ms>18000){
+			now100ms=18000;
+		}
+	}
+	function time_1splus(){
+		if(start==0){
+			now100ms+=100;
+		}
+		if(now100ms>18000){
+			now100ms=18000;
+		}
+	}
+	function time_1mminus(){
+		if(start==0){	
+			if(now100ms>6000){
+				now100ms-=6000;
+			}
+		}
+	}
+	function time_1sminus(){
+		if(start==0){	
+			if(now100ms>100){
+				now100ms-=100;
+			}
+		}
+	}
+
+	function updateFighterList() {
+    const list = document.getElementById('fighterList');
+    list.innerHTML = ''; // リストをクリア
+
+    for (const name in fighterList) {
+        const li = document.createElement('li');
+        li.textContent = name; // ファイター名
+
+        // 選手画像をリストにも表示
+        const img = document.createElement('img');
+        img.src = fighterList[name]; // 画像URL（DataURL）
+        img.width = 30; // 小さいサムネイル表示
+        img.style.marginLeft = "10px"; // 少し間隔を空ける
+
+        // 画像をリストアイテムに追加
+        li.appendChild(img);
+        list.appendChild(li);
+    }
+}
+
+	function addFighter() {
+            const name = document.getElementById('fighterName').value;
+            const file = document.getElementById('fighterImage').files[0];
+    
+            if (!name || !file) return alert('選手名と画像を入力してください');
+    
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                fighterList[name] = event.target.result;
+                localStorage.setItem('fighters', JSON.stringify(fighterList));
+                updateFighterList();
+            };
+            reader.readAsDataURL(file);
+        }
+	function loadFighterList() {
+            const storedFighters = localStorage.getItem('fighters');
+            fighterList = storedFighters ? JSON.parse(storedFighters) : {};
+            updateFighterList();
+        }
+	function toggleFighterForm() {
+            const form = document.getElementById("fighterForm");
+            form.style.display = form.style.display === "block" ? "none" : "block";
+    }
+    
+        loadFighterList();
+
+		let recognition;
+
+        let redSet = document.getElementById("redName").textContent !== "未設定";
+        let blueSet = document.getElementById("blueName").textContent !== "未設定";
+
+function startVoiceRecognition() {
+    // recognitionがすでに開始されていないかチェック
+    if (recognition && recognition.started) return;
+
+    recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    recognition.lang = 'ja-JP';
+
+    // recognitionがすでに開始されている場合にフラグをセット
+    recognition.started = false;
+
+    recognition.start();
+
+    recognition.onstart = function() {
+        recognition.started = true; // 音声認識開始時にフラグを立てる
+    };
+	
+
+    recognition.onresult = function(event) {
+        const text = event.results[0][0].transcript;
+        document.getElementById('recognitionText').textContent = text;
+        console.log("音声認識結果:", text);
+
+        if (text.includes('赤コーナー') || text.includes('赤コーラ') || text.includes('コカコーラ') ) {
+            let name = text.replace('赤コーナー', '').trim();
+            setFighterName('red', name); // 赤コーナーの選手名を設定
+            redSet = true;
+        }
+        if (text.includes('青コーナー')|| text.includes('青コーラ')) {
+            let name = text.replace('青コーナー', '').trim();
+            setFighterName('blue', name); // 青コーナーの選手名を設定
+            blueSet = true;
+        }
+
+        // 両コーナーが設定済みでも、ユーザーが明示的に上書きする場合を考慮
+        if ((redSet && blueSet) || (text.includes('赤コーナー') && text.includes('青コーナー'))) {
+            recognition.stop(); // 両方設定済みなら音声認識を終了
+            recognition.started = false;
+        }
+    };
+
+    recognition.onerror = function(event) {
+        console.error("音声認識エラー:", event);
+        recognition.stop();
+        recognition.started = false;
+    };
+
+    recognition.onend = function() {
+        recognition.started = false; // 音声認識終了後にフラグを下げる
+        redSet = document.getElementById("redName").textContent !== "未設定";
+	blueSet = document.getElementById("blueName").textContent !== "未設定";
+        // 両コーナーが設定されていなければ再度音声認識を開始
+        if (!redSet || !blueSet) {
+            setTimeout(startVoiceRecognition, 500); // 少し遅延させて再開
+        }
+    };
+}
+
+function reset_corner() {
+    document.getElementById("redName").textContent = "未設定";
+    document.getElementById("redImage").src = "";
+    document.getElementById("blueName").textContent = "未設定";
+    document.getElementById("blueImage").src = "";
+    redSet = false;
+    blueSet = false;
+}
+
+
+function setFighterName(corner, name) {
+            const bestMatch = getClosestFighterName(name);
+            console.log(`音声認識: '${name}' → 最も近い名前: '${bestMatch}'`);
+    
+            if (bestMatch) {
+                document.getElementById(corner + 'Name').textContent = bestMatch;
+                document.getElementById(corner + 'Image').src = fighterList[bestMatch];
+            } else {
+                console.warn("該当する選手が見つかりませんでした:", name);
+            }
+    }
+function normalizeText(text) {
+    // ひらがなに変換
+    const hiragana = wanakana.toHiragana(text);
+    // カタカナに変換
+    const katakana = wanakana.toKatakana(text);
+    // ローマ字に変換
+    const romaji = wanakana.toRomaji(katakana);
+    return { hiragana, katakana, romaji };
+}
+
+
+function getClosestFighterName(input) {
+    let closestName = '';
+    let minDistance = Infinity;
+    
+    if (Object.keys(fighterList).length === 0) {
+        console.warn("ファイターリストが空です");
+        return '';
+    }
+    
+    const inputForms = normalizeText(input);
+    
+    for (const name in fighterList) {
+        const nameForms = normalizeText(name);
+        
+        // ひらがな、カタカナ、ローマ字のいずれかで比較
+        const distances = [
+            levenshteinDistance(inputForms.hiragana, nameForms.hiragana),
+            levenshteinDistance(inputForms.katakana, nameForms.katakana),
+            levenshteinDistance(inputForms.romaji, nameForms.romaji)
+        ];
+        
+        const minFormDistance = Math.min(...distances);
+        
+        if (minFormDistance < minDistance) {
+            minDistance = minFormDistance;
+            closestName = name;
+        }
+    }
+    
+    console.log(`最も近いファイター名: ${closestName}`);
+    return closestName;
+}
+
+    
+        function addFighter() {
+            const name = document.getElementById('fighterName').value;
+            const file = document.getElementById('fighterImage').files[0];
+    
+            if (!name || !file) return alert('選手名と画像を入力してください');
+    
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                fighterList[name] = event.target.result;
+                localStorage.setItem('fighters', JSON.stringify(fighterList));
+                updateFighterList();
+            };
+            reader.readAsDataURL(file);
+        }
+    
+        function levenshteinDistance(a, b) {
+            const matrix = [];
+    
+            // 初期化
+            for (let i = 0; i <= a.length; i++) {
+                matrix[i] = [i];
+            }
+            for (let j = 1; j <= b.length; j++) {
+                matrix[0][j] = j;
+            }
+    
+            // コスト計算
+            for (let i = 1; i <= a.length; i++) {
+                for (let j = 1; j <= b.length; j++) {
+                    matrix[i][j] = Math.min(
+                        matrix[i - 1][j] + 1, // 削除
+                        matrix[i][j - 1] + 1, // 挿入
+                        matrix[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1) // 置換
+                    );
+                }
+            }
+    
+            return matrix[a.length][b.length];
+        }
+</script>
+
+</body>
+
+</html>
